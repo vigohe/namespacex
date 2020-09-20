@@ -17,16 +17,13 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/goph/emperror"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/heirko/go-contrib/logrusHelper"
 )
 
 var cfgFile string
@@ -61,8 +58,6 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.namespacex.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&verbose, "verbose", "v", logrus.WarnLevel.String(), "Log level (debug, info, warn, error, fatal, panic")
-	viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("verbose"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -92,19 +87,6 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
-	var config Config
-	err := viper.Unmarshal(&config)
-	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
-	setUpLogs(os.Stdout, config.Log.Level)
-}
-
-//setUpLogs set the log output ans the log level
-func setUpLogs(out io.Writer, level string) error {
-	logrus.SetOutput(out)
-	lvl, err := logrus.ParseLevel(level)
-	if err != nil {
-		return err
-	}
-	logrus.SetLevel(lvl)
-	return nil
+	var c = logrusHelper.UnmarshalConfigurationByKey("log", viper.GetViper())
+	logrusHelper.SetConfig(logrus.StandardLogger(), c)	
 }
