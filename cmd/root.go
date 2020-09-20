@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/heirko/go-contrib/logrusHelper"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/heirko/go-contrib/logrusHelper"
 )
 
 var cfgFile string
@@ -58,6 +58,8 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.namespacex.yaml)")
+	rootCmd.PersistentFlags().StringVar(&verbose, "v", "", "verbose output")
+	viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("v"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -87,6 +89,12 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
+	v := viper.GetViper()
+	for _, key := range v.AllKeys() {
+		val := v.Get(key)
+		v.Set(key, val)
+	}
+
 	var c = logrusHelper.UnmarshalConfigurationByKey("log", viper.GetViper())
-	logrusHelper.SetConfig(logrus.StandardLogger(), c)	
+	logrusHelper.SetConfig(logrus.StandardLogger(), c)
 }

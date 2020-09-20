@@ -18,5 +18,6 @@ type Config struct {
 // Configure configures some defaults in the Viper instance.
 func Configure(v *viper.Viper) {
 	v.SetDefault("log.level", "info")
+	v.SetDefault("log.formatter.name", "json")
 	v.AllowEmptyEnv(true)
 }
